@@ -87,6 +87,9 @@ class Renderer {
             component.render(this.ctx, this.camera);
         });
         
+        // Render all connection points for better visibility
+        this.renderAllConnectionPoints(components);
+        
         // Render preview component if placing
         if (selectedTool && selectedTool !== 'select' && selectedTool !== 'wire' && mousePos) {
             this.renderPreviewComponent(selectedTool, mousePos);
@@ -261,6 +264,27 @@ class Renderer {
         link.download = filename;
         link.href = this.canvas.toDataURL();
         link.click();
+    }
+    
+    // Render all connection points for better visibility
+    renderAllConnectionPoints(components) {
+        this.ctx.save();
+        this.ctx.fillStyle = '#3498db';
+        this.ctx.strokeStyle = '#2c3e50';
+        this.ctx.lineWidth = 1;
+        
+        components.forEach(component => {
+            const points = component.getConnectionPoints();
+            points.forEach(point => {
+                const screenPoint = this.worldToScreen(point);
+                this.ctx.beginPath();
+                this.ctx.arc(screenPoint.x, screenPoint.y, 3 * this.camera.zoom, 0, 2 * Math.PI);
+                this.ctx.fill();
+                this.ctx.stroke();
+            });
+        });
+        
+        this.ctx.restore();
     }
     
     // Get canvas data URL

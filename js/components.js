@@ -66,15 +66,15 @@ class Component {
             case 'resistor':
             case 'capacitor':
             case 'inductor':
-                // Two-terminal components
+                // Two-terminal components - extend to actual wire connection points
                 points.push(
                     new Vector2(
-                        this.position.x - 30 * cos,
-                        this.position.y - 30 * sin
+                        this.position.x - 40 * cos,
+                        this.position.y - 40 * sin
                     ),
                     new Vector2(
-                        this.position.x + 30 * cos,
-                        this.position.y + 30 * sin
+                        this.position.x + 40 * cos,
+                        this.position.y + 40 * sin
                     )
                 );
                 break;
@@ -92,8 +92,8 @@ class Component {
                 );
                 break;
             case 'ground':
-                // Single connection point
-                points.push(this.position.clone());
+                // Single connection point - at the top of ground symbol
+                points.push(new Vector2(this.position.x, this.position.y - 15));
                 break;
         }
         
@@ -171,7 +171,7 @@ class Component {
         
         // Render connection points if selected
         if (this.selected) {
-            this.renderConnectionPoints(ctx);
+            this.renderConnectionPoints(ctx, camera);
         }
         
         ctx.restore();
@@ -280,16 +280,28 @@ class Component {
         ctx.stroke();
     }
     
-    renderConnectionPoints(ctx) {
+    renderConnectionPoints(ctx, camera) {
         const points = this.getConnectionPoints();
+        
+        // Save current context state
+        ctx.save();
+        
+        // Reset transformation to render in world coordinates
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        
         ctx.fillStyle = '#e74c3c';
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1;
         
         points.forEach(point => {
-            const screenPoint = Utils.worldToScreen(point, { zoom: 1, offset: new Vector2(0, 0) });
+            const screenPoint = Utils.worldToScreen(point, camera);
             ctx.beginPath();
-            ctx.arc(screenPoint.x, screenPoint.y, 3, 0, 2 * Math.PI);
+            ctx.arc(screenPoint.x, screenPoint.y, 4 * camera.zoom, 0, 2 * Math.PI);
             ctx.fill();
+            ctx.stroke();
         });
+        
+        ctx.restore();
     }
     
     renderLabel(ctx, camera) {

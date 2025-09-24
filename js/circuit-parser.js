@@ -262,16 +262,16 @@ class CircuitParser {
         }
     }
     
-    // Example circuit data for testing
+    // Example circuit data for testing - Simple Series Circuit with EXACT alignment
     getExampleCircuit() {
-        return `r 100 100 200 100 0 1000
-c 250 100 350 100 0 100
-l 400 100 500 100 0 10
-v 100 200 100 300 0 5
-g 100 350 0
-w 200 100 250 100
-w 350 100 400 100
-w 100 300 100 350`;
+        return `v 200 150 200 250 0 5
+r 300 250 400 250 0 1000
+g 400 285 0
+w 200 125 400 125
+w 400 125 400 215
+w 200 275 300 275
+w 300 275 300 250
+w 400 285 400 285`;
     }
     
     // Validate circuit data format
