@@ -55,6 +55,11 @@ class CircuitSimulator {
         document.getElementById('zoomOutBtn').addEventListener('click', () => this.zoomOut());
         document.getElementById('resetViewBtn').addEventListener('click', () => this.resetView());
         
+        // Rotation controls
+        document.getElementById('rotateBtn').addEventListener('click', () => this.rotateSelected90());
+        document.getElementById('rotateCCWBtn').addEventListener('click', () => this.rotateSelectedBy(-15));
+        document.getElementById('rotateCWBtn').addEventListener('click', () => this.rotateSelectedBy(15));
+        
         // Circuit parser
         document.getElementById('parseBtn').addEventListener('click', () => this.parseCircuitInput());
         
@@ -610,6 +615,38 @@ class CircuitSimulator {
     
     resetView() {
         this.renderer.fitToView(this.components, this.wires);
+    }
+    
+    // Rotation controls
+    rotateSelected90() {
+        if (this.inputHandler.selectedComponents.length > 0) {
+            this.inputHandler.rotateSelected();
+            this.saveState();
+            this.updateStatus(`Rotated ${this.inputHandler.selectedComponents.length} component(s) by 90°`);
+            
+            // Update properties panel if a component is selected
+            if (this.selectedComponent && this.inputHandler.selectedComponents.includes(this.selectedComponent)) {
+                this.updatePropertiesPanel(this.selectedComponent);
+            }
+        } else {
+            this.updateStatus('No components selected for rotation');
+        }
+    }
+    
+    rotateSelectedBy(degrees) {
+        if (this.inputHandler.selectedComponents.length > 0) {
+            const radians = degrees * Math.PI / 180;
+            this.inputHandler.rotateSelectedBy(radians);
+            this.saveState();
+            this.updateStatus(`Rotated ${this.inputHandler.selectedComponents.length} component(s) by ${degrees}°`);
+            
+            // Update properties panel if a component is selected
+            if (this.selectedComponent && this.inputHandler.selectedComponents.includes(this.selectedComponent)) {
+                this.updatePropertiesPanel(this.selectedComponent);
+            }
+        } else {
+            this.updateStatus('No components selected for rotation');
+        }
     }
     
     // State management

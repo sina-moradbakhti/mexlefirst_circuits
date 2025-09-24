@@ -376,6 +376,27 @@ class InputHandler {
                 }
             }
         });
+        
+        // Trigger save state after rotation
+        if (this.onComponentMove) {
+            this.onComponentMove(this.selectedComponents);
+        }
+    }
+    
+    // Add smooth rotation capability
+    rotateSelectedBy(angle) {
+        this.selectedComponents.forEach(component => {
+            if (component.type !== 'wire' && component.type !== 'ground') {
+                component.rotation += angle;
+                // Normalize rotation to 0-2π range
+                while (component.rotation < 0) component.rotation += 2 * Math.PI;
+                while (component.rotation >= 2 * Math.PI) component.rotation -= 2 * Math.PI;
+            }
+        });
+        
+        if (this.onComponentMove) {
+            this.onComponentMove(this.selectedComponents);
+        }
     }
     
     placeComponent(type, position) {
