@@ -47,7 +47,7 @@ class CircuitAnalyzer {
         }
     }
     
-    // Build netlist - MANUAL APPROACH for guaranteed working connections
+    // Build netlist - IMPROVED WIRE-BASED CONNECTION DETECTION
     buildNetlist() {
         const netlist = {
             nodes: new Map(),
@@ -55,72 +55,92 @@ class CircuitAnalyzer {
             nodeCounter: 0
         };
         
-        // MANUAL NODE ASSIGNMENT - We know exactly how our circuit should be connected
-        // Based on our circuit: Battery -> Resistor -> Ground with return path
+        console.log('=== BUILDING NETLIST ===');
         
-        const nodeMap = new Map();
+        // Step 1: Create a map of all connection points
+        const allPoints = new Map(); // key -> {point, component, index}
         
-        // Node 0: Ground (reference)
-        // Node 1: Battery positive / Resistor input (top rail)
-        // Node 2: Battery negative / Ground connection (bottom rail)
+        this.components.forEach(component => {
+            const points = component.getConnectionPoints();
+            points.forEach((point, index) => {
+                const key = `${Math.round(point.x)},${Math.round(point.y)}`;
+                allPoints.set(key, {
+                    point: point,
+                    component: component,
+                    index: index,
+                    type: 'component'
+                });
+            });
+        });
         
-        // Find our components
-        const battery = this.components.find(c => c.type === 'voltage');
-        const resistor = this.components.find(c => c.type === 'resistor');
-        const ground = this.components.find(c => c.type === 'ground');
+        // Step 2: Build connection groups using wires
+        const connectionGroups = [];
+        const processedPoints = new Set();
         
-        if (!battery || !resistor || !ground) {
-            throw new Error('Circuit must have battery, resistor, and ground');
+        // Start with ground as node 0
+        const groundComponent = this.components.find(c => c.type === 'ground');
+        if (groundComponent) {
+            const groundPoints = groundComponent.getConnectionPoints();
+            const groundKey = `${Math.round(groundPoints[0].x)},${Math.round(groundPoints[0].y)}`;
+            connectionGroups.push(new Set([groundKey]));
+            processedPoints.add(groundKey);
         }
         
-        // Get connection points
-        const batteryPoints = battery.getConnectionPoints();
-        const resistorPoints = resistor.getConnectionPoints();
-        const groundPoints = ground.getConnectionPoints();
-        
-        console.log('Manual node assignment:');
-        console.log('Battery points:', batteryPoints);
-        console.log('Resistor points:', resistorPoints);
-        console.log('Ground points:', groundPoints);
-        
-        // Assign nodes manually based on our circuit topology
-        // Ground node (node 0)
-        const groundKey = `${Math.round(groundPoints[0].x)},${Math.round(groundPoints[0].y)}`;
-        nodeMap.set(groundKey, 0);
-        
-        // Top rail (node 1) - Battery right + Resistor left
-        const batteryRightKey = `${Math.round(batteryPoints[1].x)},${Math.round(batteryPoints[1].y)}`;
-        const resistorLeftKey = `${Math.round(resistorPoints[0].x)},${Math.round(resistorPoints[0].y)}`;
-        nodeMap.set(batteryRightKey, 1);
-        nodeMap.set(resistorLeftKey, 1);
-        
-        // Bottom rail (node 2) - Battery left + Resistor right + Ground
-        const batteryLeftKey = `${Math.round(batteryPoints[0].x)},${Math.round(batteryPoints[0].y)}`;
-        const resistorRightKey = `${Math.round(resistorPoints[1].x)},${Math.round(resistorPoints[1].y)}`;
-        nodeMap.set(batteryLeftKey, 2);
-        nodeMap.set(resistorRightKey, 2);
-        nodeMap.set(groundKey, 2); // Ground connects to bottom rail
-        
-        // Also assign wire endpoints to the same nodes
+        // Process each wire to build connection groups
         this.wires.forEach(wire => {
             const startKey = `${Math.round(wire.startPoint.x)},${Math.round(wire.startPoint.y)}`;
             const endKey = `${Math.round(wire.endPoint.x)},${Math.round(wire.endPoint.y)}`;
             
-            // Find which nodes these wire points should connect to
-            for (let [pointKey, nodeId] of nodeMap.entries()) {
-                const [px, py] = pointKey.split(',').map(Number);
-                
-                // Check if wire endpoints are close to existing nodes
-                const startDist = Math.sqrt(Math.pow(wire.startPoint.x - px, 2) + Math.pow(wire.startPoint.y - py, 2));
-                const endDist = Math.sqrt(Math.pow(wire.endPoint.x - px, 2) + Math.pow(wire.endPoint.y - py, 2));
-                
-                if (startDist < 5) nodeMap.set(startKey, nodeId);
-                if (endDist < 5) nodeMap.set(endKey, nodeId);
+            // Find if either endpoint is already in a group
+            let startGroup = null;
+            let endGroup = null;
+            
+            connectionGroups.forEach((group, index) => {
+                if (this.isPointInGroup(wire.startPoint, group, allPoints)) startGroup = index;
+                if (this.isPointInGroup(wire.endPoint, group, allPoints)) endGroup = index;
+            });
+            
+            if (startGroup !== null && endGroup !== null && startGroup !== endGroup) {
+                // Merge two existing groups
+                connectionGroups[startGroup] = new Set([...connectionGroups[startGroup], ...connectionGroups[endGroup]]);
+                connectionGroups.splice(endGroup, 1);
+            } else if (startGroup !== null) {
+                // Add end point to existing start group
+                connectionGroups[startGroup].add(endKey);
+            } else if (endGroup !== null) {
+                // Add start point to existing end group
+                connectionGroups[endGroup].add(startKey);
+            } else {
+                // Create new group
+                connectionGroups.push(new Set([startKey, endKey]));
+            }
+            
+            processedPoints.add(startKey);
+            processedPoints.add(endKey);
+        });
+        
+        // Step 3: Add any unconnected component points as separate nodes
+        allPoints.forEach((pointData, key) => {
+            if (!processedPoints.has(key)) {
+                connectionGroups.push(new Set([key]));
             }
         });
         
-        // Build component netlist
-        [battery, resistor].forEach(component => {
+        // Step 4: Create node map
+        const nodeMap = new Map();
+        connectionGroups.forEach((group, nodeId) => {
+            group.forEach(pointKey => {
+                nodeMap.set(pointKey, nodeId);
+            });
+        });
+        
+        console.log('Connection groups:', connectionGroups);
+        console.log('Node map:', Array.from(nodeMap.entries()));
+        
+        // Step 5: Build component netlist
+        this.components.forEach(component => {
+            if (component.type === 'ground') return; // Skip ground in netlist
+            
             const points = component.getConnectionPoints();
             const componentNodes = points.map(point => {
                 const key = `${Math.round(point.x)},${Math.round(point.y)}`;
@@ -140,11 +160,23 @@ class CircuitAnalyzer {
             });
         });
         
-        console.log('Final node map:', Array.from(nodeMap.entries()));
+        netlist.nodeCount = connectionGroups.length;
         console.log('Final netlist:', netlist);
         
-        netlist.nodeCount = 3; // Ground (0), Top rail (1), Bottom rail (2)
         return netlist;
+    }
+    
+    // Helper function to check if a point is in a connection group
+    isPointInGroup(point, group, allPoints) {
+        const tolerance = 5;
+        for (let pointKey of group) {
+            const [x, y] = pointKey.split(',').map(Number);
+            const distance = Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2));
+            if (distance <= tolerance) {
+                return true;
+            }
+        }
+        return false;
     }
     
     // Find ground reference node

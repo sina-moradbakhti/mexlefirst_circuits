@@ -42,6 +42,16 @@
             </div>
             
             <div class="toolbar-section">
+                <h3>Test Circuits</h3>
+                <div class="control-buttons">
+                    <button onclick="circuitSimulator.loadTestCircuit('voltage_divider')">Voltage Divider</button>
+                    <button onclick="circuitSimulator.loadTestCircuit('parallel_resistors')">Parallel Resistors</button>
+                    <button onclick="circuitSimulator.loadTestCircuit('rc_circuit')">RC Circuit</button>
+                    <button onclick="circuitSimulator.loadTestCircuit('series_resistors')">Series Resistors</button>
+                </div>
+            </div>
+            
+            <div class="toolbar-section">
                 <h3>Input Circuit Data</h3>
                 <textarea id="circuitInput" placeholder="Enter circuit data (e.g., r 548 100 548 228 0 12000)" rows="4"></textarea>
                 <button id="parseBtn">Parse Circuit</button>

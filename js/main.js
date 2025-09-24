@@ -432,6 +432,173 @@ class CircuitSimulator {
         this.circuitInput.value = circuitData;
     }
     
+    // Test different circuit configurations
+    loadTestCircuit(circuitType) {
+        this.components = [];
+        this.wires = [];
+        
+        switch (circuitType) {
+            case 'voltage_divider':
+                this.createVoltageDividerCircuit();
+                break;
+            case 'parallel_resistors':
+                this.createParallelResistorCircuit();
+                break;
+            case 'rc_circuit':
+                this.createRCCircuit();
+                break;
+            case 'series_resistors':
+                this.createSeriesResistorCircuit();
+                break;
+            default:
+                this.loadExampleCircuit();
+                return;
+        }
+        
+        // Update references
+        this.inputHandler.components = this.components;
+        this.inputHandler.wires = this.wires;
+        
+        // Fit to view and save state
+        this.renderer.fitToView(this.components, this.wires);
+        this.saveState();
+        
+        this.updateStatus(`Loaded ${circuitType} test circuit`);
+        
+        // Update the text area
+        const circuitData = this.circuitParser.generateCircuitData(this.components, this.wires);
+        this.circuitInput.value = circuitData;
+    }
+    
+    createVoltageDividerCircuit() {
+        // 9V battery with two resistors in series (voltage divider)
+        const battery = ComponentFactory.createComponent('voltage', new Vector2(150, 200), Math.PI/2);
+        battery.properties.voltage = 9;
+        this.components.push(battery);
+        
+        const r1 = ComponentFactory.createComponent('resistor', new Vector2(300, 150), 0);
+        r1.properties.resistance = 2000; // 2kΩ
+        this.components.push(r1);
+        
+        const r2 = ComponentFactory.createComponent('resistor', new Vector2(300, 250), 0);
+        r2.properties.resistance = 1000; // 1kΩ
+        this.components.push(r2);
+        
+        const ground = ComponentFactory.createComponent('ground', new Vector2(150, 300), 0);
+        this.components.push(ground);
+        
+        // Get exact connection points
+        const batteryPoints = battery.getConnectionPoints();
+        const r1Points = r1.getConnectionPoints();
+        const r2Points = r2.getConnectionPoints();
+        const groundPoints = ground.getConnectionPoints();
+        
+        // Wire connections
+        this.wires.push(ComponentFactory.createWire(batteryPoints[0], r1Points[0])); // Battery + to R1
+        this.wires.push(ComponentFactory.createWire(r1Points[1], r2Points[0])); // R1 to R2 (middle node)
+        this.wires.push(ComponentFactory.createWire(r2Points[1], batteryPoints[1])); // R2 to Battery -
+        this.wires.push(ComponentFactory.createWire(batteryPoints[1], groundPoints[0])); // Battery - to Ground
+    }
+    
+    createParallelResistorCircuit() {
+        // 5V battery with two resistors in parallel
+        const battery = ComponentFactory.createComponent('voltage', new Vector2(150, 200), 0);
+        battery.properties.voltage = 5;
+        this.components.push(battery);
+        
+        const r1 = ComponentFactory.createComponent('resistor', new Vector2(350, 150), 0);
+        r1.properties.resistance = 1000; // 1kΩ
+        this.components.push(r1);
+        
+        const r2 = ComponentFactory.createComponent('resistor', new Vector2(350, 250), 0);
+        r2.properties.resistance = 2000; // 2kΩ
+        this.components.push(r2);
+        
+        const ground = ComponentFactory.createComponent('ground', new Vector2(500, 200), 0);
+        this.components.push(ground);
+        
+        // Get exact connection points
+        const batteryPoints = battery.getConnectionPoints();
+        const r1Points = r1.getConnectionPoints();
+        const r2Points = r2.getConnectionPoints();
+        const groundPoints = ground.getConnectionPoints();
+        
+        // Wire connections for parallel circuit
+        this.wires.push(ComponentFactory.createWire(batteryPoints[1], r1Points[0])); // Battery + to R1 left
+        this.wires.push(ComponentFactory.createWire(batteryPoints[1], r2Points[0])); // Battery + to R2 left
+        this.wires.push(ComponentFactory.createWire(r1Points[1], groundPoints[0])); // R1 right to ground
+        this.wires.push(ComponentFactory.createWire(r2Points[1], groundPoints[0])); // R2 right to ground
+        this.wires.push(ComponentFactory.createWire(batteryPoints[0], groundPoints[0])); // Battery - to ground
+    }
+    
+    createRCCircuit() {
+        // RC circuit with battery, resistor, and capacitor
+        const battery = ComponentFactory.createComponent('voltage', new Vector2(150, 200), 0);
+        battery.properties.voltage = 12;
+        this.components.push(battery);
+        
+        const resistor = ComponentFactory.createComponent('resistor', new Vector2(300, 150), 0);
+        resistor.properties.resistance = 10000; // 10kΩ
+        this.components.push(resistor);
+        
+        const capacitor = ComponentFactory.createComponent('capacitor', new Vector2(300, 250), 0);
+        capacitor.properties.capacitance = 100e-6; // 100μF
+        this.components.push(capacitor);
+        
+        const ground = ComponentFactory.createComponent('ground', new Vector2(450, 200), 0);
+        this.components.push(ground);
+        
+        // Get exact connection points
+        const batteryPoints = battery.getConnectionPoints();
+        const resistorPoints = resistor.getConnectionPoints();
+        const capacitorPoints = capacitor.getConnectionPoints();
+        const groundPoints = ground.getConnectionPoints();
+        
+        // Wire connections
+        this.wires.push(ComponentFactory.createWire(batteryPoints[1], resistorPoints[0])); // Battery + to R
+        this.wires.push(ComponentFactory.createWire(resistorPoints[1], capacitorPoints[0])); // R to C
+        this.wires.push(ComponentFactory.createWire(capacitorPoints[1], groundPoints[0])); // C to ground
+        this.wires.push(ComponentFactory.createWire(batteryPoints[0], groundPoints[0])); // Battery - to ground
+    }
+    
+    createSeriesResistorCircuit() {
+        // Three resistors in series
+        const battery = ComponentFactory.createComponent('voltage', new Vector2(150, 200), 0);
+        battery.properties.voltage = 15;
+        this.components.push(battery);
+        
+        const r1 = ComponentFactory.createComponent('resistor', new Vector2(300, 200), 0);
+        r1.properties.resistance = 1000; // 1kΩ
+        this.components.push(r1);
+        
+        const r2 = ComponentFactory.createComponent('resistor', new Vector2(450, 200), 0);
+        r2.properties.resistance = 2000; // 2kΩ
+        this.components.push(r2);
+        
+        const r3 = ComponentFactory.createComponent('resistor', new Vector2(600, 200), 0);
+        r3.properties.resistance = 3000; // 3kΩ
+        this.components.push(r3);
+        
+        const ground = ComponentFactory.createComponent('ground', new Vector2(150, 300), 0);
+        this.components.push(ground);
+        
+        // Get exact connection points
+        const batteryPoints = battery.getConnectionPoints();
+        const r1Points = r1.getConnectionPoints();
+        const r2Points = r2.getConnectionPoints();
+        const r3Points = r3.getConnectionPoints();
+        const groundPoints = ground.getConnectionPoints();
+        
+        // Wire connections
+        this.wires.push(ComponentFactory.createWire(batteryPoints[1], r1Points[0])); // Battery + to R1
+        this.wires.push(ComponentFactory.createWire(r1Points[1], r2Points[0])); // R1 to R2
+        this.wires.push(ComponentFactory.createWire(r2Points[1], r3Points[0])); // R2 to R3
+        this.wires.push(ComponentFactory.createWire(r3Points[1], new Vector2(600, 300))); // R3 down
+        this.wires.push(ComponentFactory.createWire(new Vector2(600, 300), new Vector2(150, 300))); // Bottom rail
+        this.wires.push(ComponentFactory.createWire(new Vector2(150, 300), groundPoints[0])); // To ground
+        this.wires.push(ComponentFactory.createWire(batteryPoints[0], groundPoints[0])); // Battery - to ground
+    }
+    
     // View controls
     zoomIn() {
         this.renderer.zoom(1.2);
