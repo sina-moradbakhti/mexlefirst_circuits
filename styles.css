@@ -1,0 +1,249 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f0f0f0;
+    overflow: hidden;
+}
+
+.container {
+    display: flex;
+    height: 100vh;
+}
+
+.toolbar {
+    width: 280px;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.toolbar-section {
+    margin-bottom: 30px;
+}
+
+.toolbar-section h3 {
+    margin-bottom: 15px;
+    color: #ecf0f1;
+    border-bottom: 2px solid #34495e;
+    padding-bottom: 5px;
+}
+
+.component-buttons, .control-buttons, .view-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.component-btn, .control-buttons button, .view-controls button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    background-color: #34495e;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.component-btn:hover, .control-buttons button:hover, .view-controls button:hover {
+    background-color: #3498db;
+    transform: translateY(-2px);
+}
+
+.component-btn.active {
+    background-color: #e74c3c;
+}
+
+#circuitInput {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #34495e;
+    border-radius: 5px;
+    background-color: #34495e;
+    color: white;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    resize: vertical;
+    margin-bottom: 10px;
+}
+
+#circuitInput::placeholder {
+    color: #bdc3c7;
+}
+
+#parseBtn {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #27ae60;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+}
+
+#parseBtn:hover {
+    background-color: #2ecc71;
+}
+
+.canvas-container {
+    flex: 1;
+    position: relative;
+    background-color: white;
+}
+
+#circuitCanvas {
+    display: block;
+    cursor: crosshair;
+    background-color: #fafafa;
+    background-image: 
+        linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+
+.status-bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background-color: #34495e;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 15px;
+    font-size: 12px;
+}
+
+.properties-panel {
+    width: 250px;
+    background-color: #ecf0f1;
+    padding: 20px;
+    border-left: 1px solid #bdc3c7;
+    overflow-y: auto;
+}
+
+.properties-panel h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+    border-bottom: 2px solid #bdc3c7;
+    padding-bottom: 5px;
+}
+
+.property-group {
+    margin-bottom: 15px;
+}
+
+.property-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.property-group input, .property-group select {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #bdc3c7;
+    border-radius: 3px;
+    font-size: 14px;
+}
+
+.property-group input:focus, .property-group select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+}
+
+/* Component styles on canvas */
+.component-highlight {
+    stroke: #e74c3c !important;
+    stroke-width: 3 !important;
+}
+
+.component-selected {
+    stroke: #f39c12 !important;
+    stroke-width: 2 !important;
+}
+
+/* Responsive design */
+@media (max-width: 1024px) {
+    .toolbar {
+        width: 250px;
+    }
+    
+    .properties-panel {
+        width: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .toolbar {
+        width: 100%;
+        height: 200px;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+    }
+    
+    .toolbar-section {
+        min-width: 200px;
+        margin-right: 20px;
+    }
+    
+    .canvas-container {
+        height: calc(100vh - 200px);
+    }
+    
+    .properties-panel {
+        display: none;
+    }
+}
+
+/* Animation for component placement */
+@keyframes componentPlace {
+    0% {
+        transform: scale(0.8);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.component-placing {
+    animation: componentPlace 0.3s ease-out;
+}
+
+/* Tooltip styles */
+.tooltip {
+    position: absolute;
+    background-color: #2c3e50;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 3px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.tooltip.show {
+    opacity: 1;
+}

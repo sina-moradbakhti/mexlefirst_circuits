@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Simulator - Embedding Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .content {
+            padding: 20px;
+        }
+        
+        .simulator-container {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .simulator-frame {
+            width: 100%;
+            height: 600px;
+            border: none;
+            display: block;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .info-panel {
+            background-color: #ecf0f1;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        
+        .code-block {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+            }
+            
+            .simulator-frame {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Circuit Simulator - Integration Example</h1>
+            <p>Demonstrating how to embed the circuit simulator in other applications</p>
+        </div>
+        
+        <div class="content">
+            <h2>Embedded Circuit Simulator</h2>
+            <p>This example shows how the circuit simulator can be embedded in other web applications, Flutter web apps, or admin panels.</p>
+            
+            <div class="simulator-container">
+                <iframe id="simulatorFrame" 
+                        src="index.html" 
+                        class="simulator-frame"
+                        title="Circuit Simulator">
+                </iframe>
+            </div>
+            
+            <div class="controls">
+                <button class="btn" onclick="loadExampleCircuit()">Load Example Circuit</button>
+                <button class="btn" onclick="clearCircuit()">Clear Circuit</button>
+                <button class="btn" onclick="exportCircuit()">Export Circuit</button>
+                <button class="btn" onclick="toggleFullscreen()">Toggle Fullscreen</button>
+            </div>
+            
+            <div class="info-panel">
+                <h3>Integration Methods</h3>
+                
+                <h4>1. Simple iframe Embedding</h4>
+                <div class="code-block">
+&lt;iframe src="circuit-simulator/index.html" 
+        width="100%" 
+        height="600px" 
+        frameborder="0"&gt;
+&lt;/iframe&gt;
+                </div>
+                
+                <h4>2. Flutter Web Integration</h4>
+                <div class="code-block">
+import 'dart:html' as html;
+import 'package:flutter/material.dart';
+
+class CircuitSimulatorWidget extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 600,
+      child: HtmlElementView(
+        viewType: 'circuit-simulator',
+      ),
+    );
+  }
+}
+
+// Register the view
+html.platformViewRegistry.registerViewFactory(
+  'circuit-simulator',
+  (int viewId) => html.IFrameElement()
+    ..src = 'assets/circuit-simulator/index.html'
+    ..style.border = 'none'
+    ..style.width = '100%'
+    ..style.height = '100%',
+);
+                </div>
+                
+                <h4>3. JavaScript API Integration</h4>
+                <div class="code-block">
+// Access the simulator instance
+const iframe = document.getElementById('simulatorFrame');
+const simulator = iframe.contentWindow.circuitSimulator;
+
+// Load circuit data
+function loadCircuitData(circuitText) {
+    simulator.circuitInput.value = circuitText;
+    simulator.parseCircuitInput();
+}
+
+// Export circuit data
+function getCircuitData() {
+    return simulator.circuitParser.generateCircuitData(
+        simulator.components, 
+        simulator.wires
+    );
+}
+
+// Clear circuit
+function clearCircuit() {
+    simulator.clearCircuit();
+}
+                </div>
+                
+                <h4>4. React Integration</h4>
+                <div class="code-block">
+import React, { useRef, useEffect } from 'react';
+
+const CircuitSimulator = ({ circuitData, onCircuitChange }) => {
+  const iframeRef = useRef(null);
+  
+  useEffect(() => {
+    const iframe = iframeRef.current;
+    if (iframe && circuitData) {
+      iframe.onload = () => {
+        const simulator = iframe.contentWindow.circuitSimulator;
+        simulator.circuitInput.value = circuitData;
+        simulator.parseCircuitInput();
+      };
+    }
+  }, [circuitData]);
+  
+  return (
+    &lt;iframe
+      ref={iframeRef}
+      src="/circuit-simulator/index.html"
+      width="100%"
+      height="600px"
+      frameBorder="0"
+    /&gt;
+  );
+};
+                </div>
+            </div>
+            
+            <div class="info-panel">
+                <h3>Features Available via API</h3>
+                <ul>
+                    <li><strong>Load Circuit Data</strong>: Parse standard format circuit descriptions</li>
+                    <li><strong>Export Circuit</strong>: Generate circuit data in standard format</li>
+                    <li><strong>Component Management</strong>: Add, remove, and modify components</li>
+                    <li><strong>View Control</strong>: Zoom, pan, and fit to view</li>
+                    <li><strong>Tool Selection</strong>: Programmatically select tools</li>
+                    <li><strong>Event Handling</strong>: Listen for circuit changes and user interactions</li>
+                </ul>
+            </div>
+            
+            <div class="info-panel">
+                <h3>Example Circuit Data Format</h3>
+                <div class="code-block">
+r 548 100 548 228 0 12000    # 12kΩ Resistor
+c 250 100 350 100 0 100      # 100pF Capacitor
+l 400 100 500 100 0 10       # 10μH Inductor
+v 100 200 100 300 0 5        # 5V Voltage Source
+g 100 350 0                  # Ground
+w 200 100 250 100            # Wire connection
+w 350 100 400 100            # Wire connection
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let simulatorFrame;
+        let simulator;
+        
+        // Wait for iframe to load
+        window.addEventListener('load', () => {
+            simulatorFrame = document.getElementById('simulatorFrame');
+            
+            simulatorFrame.addEventListener('load', () => {
+                simulator = simulatorFrame.contentWindow.circuitSimulator;
+                console.log('Circuit simulator loaded and ready');
+            });
+        });
+        
+        function loadExampleCircuit() {
+            if (simulator) {
+                const exampleCircuit = `r 100 100 200 100 0 1000
+c 250 100 350 100 0 100
+l 400 100 500 100 0 10
+v 100 200 100 300 0 5
+g 100 350 0
+w 200 100 250 100
+w 350 100 400 100
+w 100 300 100 350`;
+                
+                simulator.circuitInput.value = exampleCircuit;
+                simulator.parseCircuitInput();
+            } else {
+                alert('Simulator not ready yet. Please wait a moment and try again.');
+            }
+        }
+        
+        function clearCircuit() {
+            if (simulator) {
+                simulator.clearCircuit();
+            }
+        }
+        
+        function exportCircuit() {
+            if (simulator) {
+                simulator.exportCircuit();
+            }
+        }
+        
+        function toggleFullscreen() {
+            const container = document.querySelector('.simulator-container');
+            
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    alert(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+        
+        // Example of listening for circuit changes
+        function setupCircuitChangeListener() {
+            if (simulator) {
+                // Override the saveState method to capture changes
+                const originalSaveState = simulator.saveState;
+                simulator.saveState = function() {
+                    originalSaveState.call(this);
+                    
+                    // Get current circuit data
+                    const circuitData = simulator.circuitParser.generateCircuitData(
+                        simulator.components, 
+                        simulator.wires
+                    );
+                    
+                    console.log('Circuit changed:', circuitData);
+                    
+                    // You can send this data to your backend or parent application
+                    // window.parent.postMessage({ type: 'circuitChanged', data: circuitData }, '*');
+                };
+            }
+        }
+        
+        // Set up the listener once the simulator is loaded
+        setTimeout(setupCircuitChangeListener, 2000);
+    </script>
+</body>
+</html>

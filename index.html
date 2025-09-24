@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Circuit Simulator</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="toolbar">
+            <div class="toolbar-section">
+                <h3>Components</h3>
+                <div class="component-buttons">
+                    <button class="component-btn" data-component="resistor">Resistor</button>
+                    <button class="component-btn" data-component="capacitor">Capacitor</button>
+                    <button class="component-btn" data-component="inductor">Inductor</button>
+                    <button class="component-btn" data-component="voltage">Voltage Source</button>
+                    <button class="component-btn" data-component="ground">Ground</button>
+                    <button class="component-btn" data-component="wire">Wire</button>
+                </div>
+            </div>
+            
+            <div class="toolbar-section">
+                <h3>Controls</h3>
+                <div class="control-buttons">
+                    <button id="clearBtn">Clear All</button>
+                    <button id="exportBtn">Export</button>
+                    <button id="importBtn">Import</button>
+                    <input type="file" id="fileInput" accept=".json" style="display: none;">
+                </div>
+            </div>
+            
+            <div class="toolbar-section">
+                <h3>View</h3>
+                <div class="view-controls">
+                    <button id="zoomInBtn">Zoom In</button>
+                    <button id="zoomOutBtn">Zoom Out</button>
+                    <button id="resetViewBtn">Reset View</button>
+                </div>
+            </div>
+            
+            <div class="toolbar-section">
+                <h3>Input Circuit Data</h3>
+                <textarea id="circuitInput" placeholder="Enter circuit data (e.g., r 548 100 548 228 0 12000)" rows="4"></textarea>
+                <button id="parseBtn">Parse Circuit</button>
+            </div>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="circuitCanvas"></canvas>
+            <div class="status-bar">
+                <span id="statusText">Ready</span>
+                <span id="coordinates"></span>
+            </div>
+        </div>
+        
+        <div class="properties-panel" id="propertiesPanel">
+            <h3>Component Properties</h3>
+            <div id="propertiesContent">
+                <p>Select a component to edit its properties</p>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/utils.js"></script>
+    <script src="js/components.js"></script>
+    <script src="js/circuit-parser.js"></script>
+    <script src="js/renderer.js"></script>
+    <script src="js/input-handler.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
